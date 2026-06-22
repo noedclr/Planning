@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planning chantier</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="planner-app">
+      <header class="planner-header">
+        <div class="app-title">
+          <span class="brand-mark" aria-hidden="true">PC</span>
+          <div>
+            <h1>Plan chantier</h1>
+            <p>Planning Gantt clair type Project</p>
+          </div>
+        </div>
+
+        <section class="toolbar" aria-label="Outils du planning">
+          <button class="button button-create" id="open-task-form" type="button">
+            + Creer
+          </button>
+
+          <label class="field field-search">
+            <span>Rechercher</span>
+            <input
+              id="search"
+              type="search"
+              placeholder="Tache, lot, entreprise..."
+              autocomplete="off"
+            />
+          </label>
+
+          <label class="field">
+            <span>Phase</span>
+            <select id="phase-filter"></select>
+          </label>
+
+          <label class="field">
+            <span>Statut</span>
+            <select id="status-filter"></select>
+          </label>
+
+          <label class="field">
+            <span>Zoom</span>
+            <select id="density">
+              <option value="compact" selected>Compact</option>
+              <option value="standard">Standard</option>
+              <option value="large">Large</option>
+            </select>
+          </label>
+
+          <button class="button" id="reset-demo" type="button">Demo</button>
+        </section>
+      </header>
+
+      <section class="summary-line" id="status-summary" aria-live="polite"></section>
+
+      <main class="gantt-shell">
+        <aside class="task-pane" aria-label="Tableau des taches">
+          <div class="task-header">
+            <span>Sujet</span>
+            <span>Type</span>
+            <span>Statut</span>
+            <span>Priorite</span>
+            <span>Assigne</span>
+          </div>
+          <div class="task-table" id="task-table"></div>
+        </aside>
+
+        <section class="gantt-pane" aria-label="Planning Gantt">
+          <div class="timeline-scroll" id="timeline-scroll">
+            <div class="timeline" id="timeline"></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="selection-line" id="selected-summary" aria-live="polite">
+        Selectionnez une tache pour afficher ses details.
+      </footer>
+    </div>
+
+    <dialog class="task-dialog" id="task-dialog">
+      <form method="dialog" id="task-form">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Nouvelle intervention</p>
+            <h2>Ajouter une tache au planning</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Fermer" type="submit">
+            x
+          </button>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Phase</span>
+            <select name="phaseId" id="form-phase"></select>
+          </label>
+
+          <label class="field">
+            <span>Statut</span>
+            <select name="status" id="form-status"></select>
+          </label>
+
+          <label class="field">
+            <span>Lot</span>
+            <input name="lot" value="LOT 11" required />
+          </label>
+
+          <label class="field">
+            <span>Entreprise</span>
+            <input name="company" value="Entreprise" required />
+          </label>
+
+          <label class="field field-wide">
+            <span>Tache</span>
+            <input name="name" value="Nouvelle intervention" required />
+          </label>
+
+          <label class="field">
+            <span>Debut</span>
+            <input name="start" type="date" value="2026-09-14" required />
+          </label>
+
+          <label class="field">
+            <span>Fin</span>
+            <input name="end" type="date" value="2026-09-18" required />
+          </label>
+
+          <label class="field">
+            <span>Avancement (%)</span>
+            <input name="progress" type="number" min="0" max="100" value="0" />
+          </label>
+
+          <label class="field">
+            <span>Responsable</span>
+            <input name="owner" value="Conducteur travaux" required />
+          </label>
+
+          <label class="field field-wide">
+            <span>Notes</span>
+            <textarea name="notes" rows="3">Preciser les contraintes, dependances ou points de vigilance.</textarea>
+          </label>
+        </div>
+
+        <p class="form-error" id="form-error" role="alert"></p>
+
+        <div class="dialog-actions">
+          <button class="button button-ghost" value="cancel" type="submit">Annuler</button>
+          <button class="button button-primary" value="default" type="submit">
+            Ajouter au planning
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
