@@ -33,11 +33,11 @@ export const statuses = {
   },
   progress: {
     label: "En cours",
-    color: "#0ea5e9"
+    color: "#059669"
   },
   done: {
     label: "Termine",
-    color: "#22c55e"
+    color: "#1d4ed8"
   },
   risk: {
     label: "A risque",

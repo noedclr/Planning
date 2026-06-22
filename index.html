@@ -12,12 +12,16 @@
         <div class="app-title">
           <span class="brand-mark" aria-hidden="true">PC</span>
           <div>
-            <h1>Planning chantier</h1>
-            <p>Vue Gantt simplifiee type Project</p>
+            <h1>Plan chantier</h1>
+            <p>Planning Gantt clair type Project</p>
           </div>
         </div>
 
         <section class="toolbar" aria-label="Outils du planning">
+          <button class="button button-create" id="open-task-form" type="button">
+            + Creer
+          </button>
+
           <label class="field field-search">
             <span>Rechercher</span>
             <input
@@ -48,9 +52,6 @@
           </label>
 
           <button class="button" id="reset-demo" type="button">Demo</button>
-          <button class="button button-primary" id="open-task-form" type="button">
-            + Tache
-          </button>
         </section>
       </header>
 
@@ -59,12 +60,11 @@
       <main class="gantt-shell">
         <aside class="task-pane" aria-label="Tableau des taches">
           <div class="task-header">
-            <span>Lot</span>
-            <span>Tache</span>
-            <span>Entreprise</span>
-            <span>Debut</span>
-            <span>Fin</span>
-            <span>%</span>
+            <span>Sujet</span>
+            <span>Type</span>
+            <span>Statut</span>
+            <span>Priorite</span>
+            <span>Assigne</span>
           </div>
           <div class="task-table" id="task-table"></div>
         </aside>

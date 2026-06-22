@@ -1,7 +1,9 @@
 import { defaultTasks, phases, statuses } from "./planningData.js";
 import {
   calculateKpis,
+  daysBetweenInclusive,
   enumerateDays,
+  formatIso,
   getPhaseById,
   getTaskGridPosition,
   getTimelineBounds,
@@ -189,6 +191,7 @@ function render() {
   const bounds = getTimelineBounds(timelineTasks);
   const days = enumerateDays(bounds.start, bounds.end);
   const grouped = groupTasksByPhase(visibleTasks, phases);
+  const markerDate = getMarkerDate(bounds, timelineTasks);
 
   if (!visibleTasks.some((task) => task.id === selectedTaskId)) {
     selectedTaskId = visibleTasks[0]?.id ?? tasks[0]?.id ?? null;
@@ -196,7 +199,7 @@ function render() {
 
   renderStatusSummary(visibleTasks);
   renderTaskTable(grouped);
-  renderTimeline(grouped, days, bounds.start);
+  renderTimeline(grouped, days, bounds.start, markerDate);
   renderSelectedSummary();
 }
 
@@ -227,8 +230,14 @@ function renderTaskTable(grouped) {
       (group) => `
         <section class="task-group">
           <div class="phase-row" style="--phase-color: ${group.accent}">
-            <span>${group.name}</span>
-            <strong>${group.tasks.length}</strong>
+            <span class="subject-cell phase-subject">
+              <span class="chevron">⌄</span>
+              <strong>${group.name}</strong>
+            </span>
+            <span class="type-badge type-phase">PHASE</span>
+            <span class="status-cell"><i></i>En cours</span>
+            <span class="priority-cell">Normal</span>
+            <span class="assignee-cell">${group.tasks.length} taches</span>
           </div>
           ${group.tasks.map(renderTaskRow).join("")}
         </section>
@@ -242,21 +251,33 @@ function renderTaskTable(grouped) {
 }
 
 function renderTaskRow(task) {
+  const status = statuses[task.status];
+  const priority = getPriority(task.status);
   const isSelected = task.id === selectedTaskId ? "is-selected" : "";
 
   return `
     <button class="task-row ${isSelected}" data-task-id="${task.id}" type="button">
-      <span class="lot">${task.lot}</span>
-      <span class="task-name">${task.name}</span>
-      <span class="company">${task.company}</span>
-      <span class="date">${formatShortDate(task.start)}</span>
-      <span class="date">${formatShortDate(task.end)}</span>
-      <span class="progress">${task.progress}</span>
+      <span class="subject-cell task-subject">
+        <span class="tree-spacer"></span>
+        <span class="subject-text">
+          <strong>${task.name}</strong>
+          <small>${task.lot}</small>
+        </span>
+      </span>
+      <span class="type-badge type-task">TACHE</span>
+      <span class="status-cell" style="--status-color: ${status.color}">
+        <i></i>${status.label}
+      </span>
+      <span class="priority-cell priority-${priority.key}">${priority.label}</span>
+      <span class="assignee-cell">
+        <span class="avatar">${getInitials(task.company)}</span>
+        <span>${task.company}</span>
+      </span>
     </button>
   `;
 }
 
-function renderTimeline(grouped, days, timelineStart) {
+function renderTimeline(grouped, days, timelineStart, markerDate) {
   const weekSegments = buildWeekSegments(days);
   const totalRows = Math.max(
     grouped.reduce((sum, group) => sum + group.tasks.length + 1, 0),
@@ -292,6 +313,7 @@ function renderTimeline(grouped, days, timelineStart) {
     </div>
     <div class="timeline-body">
       ${renderTimelineRows(grouped, days, timelineStart)}
+      ${renderTodayLine(markerDate, timelineStart)}
     </div>
   `;
 
@@ -305,11 +327,7 @@ function renderTimelineRows(grouped, days, timelineStart) {
 
   return grouped
     .map((group) => {
-      const phaseRow = `
-        <div class="timeline-row phase-band" style="--row: ${rowIndex}; --phase-color: ${group.accent}">
-          <span>${group.name}</span>
-        </div>
-      `;
+      const phaseRow = renderTimelinePhaseRow(group, rowIndex, days, timelineStart);
 
       rowIndex += 1;
 
@@ -326,6 +344,34 @@ function renderTimelineRows(grouped, days, timelineStart) {
     .join("");
 }
 
+function renderTimelinePhaseRow(group, row, days, timelineStart) {
+  const phaseStart = group.tasks
+    .map((task) => task.start)
+    .sort((a, b) => a.localeCompare(b))[0];
+  const phaseEnd = group.tasks
+    .map((task) => task.end)
+    .sort((a, b) => b.localeCompare(a))[0];
+  const position = getTaskGridPosition(
+    {
+      start: phaseStart,
+      end: phaseEnd
+    },
+    timelineStart
+  );
+
+  return `
+    <div class="timeline-row phase-timeline-row" style="--row: ${row}; --phase-color: ${group.accent}">
+      ${renderGridSquares(days)}
+      <div
+        class="phase-bar"
+        style="grid-column: ${position.columnStart} / span ${position.columnSpan}"
+      >
+        ${group.name}
+      </div>
+    </div>
+  `;
+}
+
 function renderTimelineTaskRow(task, row, days, timelineStart) {
   const position = getTaskGridPosition(task, timelineStart);
   const status = statuses[task.status];
@@ -333,11 +379,7 @@ function renderTimelineTaskRow(task, row, days, timelineStart) {
 
   return `
     <div class="timeline-row" style="--row: ${row}">
-      ${days
-        .map(
-          (day) => `<span class="grid-square ${day.isWeekend ? "is-weekend" : ""}"></span>`
-        )
-        .join("")}
+      ${renderGridSquares(days)}
       <button
         class="task-bar ${isSelected}"
         data-task-id="${task.id}"
@@ -349,10 +391,28 @@ function renderTimelineTaskRow(task, row, days, timelineStart) {
         "
       >
         <span class="task-bar-progress" style="width: ${task.progress}%"></span>
-        <span class="task-bar-label">${task.lot}</span>
+        <span class="task-bar-label">${task.name}</span>
       </button>
     </div>
   `;
+}
+
+function renderGridSquares(days) {
+  return days
+    .map(
+      (day) => `<span class="grid-square ${day.isWeekend ? "is-weekend" : ""}"></span>`
+    )
+    .join("");
+}
+
+function renderTodayLine(markerDate, timelineStart) {
+  if (!markerDate) {
+    return "";
+  }
+
+  const column = daysBetweenInclusive(timelineStart, markerDate);
+
+  return `<div class="today-line" style="grid-column: ${column};"></div>`;
 }
 
 function renderSelectedSummary() {
@@ -381,6 +441,48 @@ function renderSelectedSummary() {
 function selectTask(taskId) {
   selectedTaskId = taskId;
   render();
+}
+
+function getMarkerDate(bounds, timelineTasks) {
+  const today = formatIso(new Date());
+
+  if (today >= bounds.start && today <= bounds.end) {
+    return today;
+  }
+
+  return timelineTasks
+    .map((task) => task.start)
+    .sort((a, b) => a.localeCompare(b))[0];
+}
+
+function getPriority(status) {
+  if (status === "critical") {
+    return {
+      key: "urgent",
+      label: "Urgent"
+    };
+  }
+
+  if (status === "risk") {
+    return {
+      key: "high",
+      label: "Haute"
+    };
+  }
+
+  return {
+    key: "normal",
+    label: "Normal"
+  };
+}
+
+function getInitials(value) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join("");
 }
 
 function buildWeekSegments(days) {
