@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planning chantier</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">PC</div>
+          <div>
+            <p class="eyebrow">Planning chantier</p>
+            <h1>Vue execution multi-lots</h1>
+          </div>
+        </div>
+
+        <div class="topbar-actions" aria-label="Actions principales">
+          <button class="button button-ghost" id="reset-demo" type="button">
+            Reinitialiser demo
+          </button>
+          <button class="button button-primary" id="open-task-form" type="button">
+            Ajouter une tache
+          </button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Synthese</p>
+          <h2>Coordonnez les lots, les dates et les points critiques.</h2>
+          <p>
+            Une interface inspiree des plannings travaux classiques : tableau des
+            interventions a gauche, grille calendaire a droite, couleurs par
+            statut et details operationnels en un clic.
+          </p>
+        </div>
+
+        <div class="kpi-grid" id="kpi-grid" aria-label="Indicateurs du planning"></div>
+      </section>
+
+      <section class="controls" aria-label="Filtres du planning">
+        <label class="field field-search">
+          <span>Recherche</span>
+          <input
+            id="search"
+            type="search"
+            placeholder="Tache, entreprise, lot..."
+            autocomplete="off"
+          />
+        </label>
+
+        <label class="field">
+          <span>Phase</span>
+          <select id="phase-filter"></select>
+        </label>
+
+        <label class="field">
+          <span>Statut</span>
+          <select id="status-filter"></select>
+        </label>
+
+        <label class="field">
+          <span>Zoom</span>
+          <select id="density">
+            <option value="compact">Compact</option>
+            <option value="standard" selected>Standard</option>
+            <option value="large">Confort</option>
+          </select>
+        </label>
+      </section>
+
+      <main class="workspace">
+        <aside class="sidebar" aria-label="Liste des taches">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Lots et interventions</p>
+              <h2 id="task-count">0 tache</h2>
+            </div>
+          </div>
+          <div class="task-table" id="task-table"></div>
+        </aside>
+
+        <section class="planning-card" aria-label="Grille planning">
+          <div class="timeline-scroll">
+            <div class="timeline" id="timeline"></div>
+          </div>
+        </section>
+      </main>
+
+      <section class="details-panel" id="details-panel" aria-live="polite">
+        <div>
+          <p class="eyebrow">Selection</p>
+          <h2 id="details-title">Selectionnez une tache</h2>
+          <p id="details-meta">
+            Cliquez sur une ligne ou une barre du planning pour consulter les
+            informations operationnelles.
+          </p>
+        </div>
+        <div class="details-grid" id="details-grid"></div>
+      </section>
+    </div>
+
+    <dialog class="task-dialog" id="task-dialog">
+      <form method="dialog" id="task-form">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Nouvelle intervention</p>
+            <h2>Ajouter une tache au planning</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Fermer" type="submit">
+            x
+          </button>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Phase</span>
+            <select name="phaseId" id="form-phase"></select>
+          </label>
+
+          <label class="field">
+            <span>Statut</span>
+            <select name="status" id="form-status"></select>
+          </label>
+
+          <label class="field">
+            <span>Lot</span>
+            <input name="lot" value="LOT 11" required />
+          </label>
+
+          <label class="field">
+            <span>Entreprise</span>
+            <input name="company" value="Entreprise" required />
+          </label>
+
+          <label class="field field-wide">
+            <span>Tache</span>
+            <input name="name" value="Nouvelle intervention" required />
+          </label>
+
+          <label class="field">
+            <span>Debut</span>
+            <input name="start" type="date" value="2026-09-14" required />
+          </label>
+
+          <label class="field">
+            <span>Fin</span>
+            <input name="end" type="date" value="2026-09-18" required />
+          </label>
+
+          <label class="field">
+            <span>Avancement (%)</span>
+            <input name="progress" type="number" min="0" max="100" value="0" />
+          </label>
+
+          <label class="field">
+            <span>Responsable</span>
+            <input name="owner" value="Conducteur travaux" required />
+          </label>
+
+          <label class="field field-wide">
+            <span>Notes</span>
+            <textarea name="notes" rows="3">Preciser les contraintes, dependances ou points de vigilance.</textarea>
+          </label>
+        </div>
+
+        <p class="form-error" id="form-error" role="alert"></p>
+
+        <div class="dialog-actions">
+          <button class="button button-ghost" value="cancel" type="submit">Annuler</button>
+          <button class="button button-primary" value="default" type="submit">
+            Ajouter au planning
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

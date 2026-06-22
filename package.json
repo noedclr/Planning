@@ -1,0 +1,19 @@
+{
+  "name": "planning-chantier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Application web de planning chantier avec vue Gantt.",
+  "scripts": {
+    "start": "python3 -m http.server 4173",
+    "test": "node --test"
+  },
+  "keywords": [
+    "planning",
+    "chantier",
+    "gantt",
+    "construction"
+  ],
+  "author": "",
+  "license": "UNLICENSED"
+}
