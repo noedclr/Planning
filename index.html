@@ -7,100 +7,78 @@
     <link rel="stylesheet" href="./src/styles.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="topbar">
-        <div class="brand">
-          <div class="brand-mark" aria-hidden="true">PC</div>
+    <div class="planner-app">
+      <header class="planner-header">
+        <div class="app-title">
+          <span class="brand-mark" aria-hidden="true">PC</span>
           <div>
-            <p class="eyebrow">Planning chantier</p>
-            <h1>Vue execution multi-lots</h1>
+            <h1>Planning chantier</h1>
+            <p>Vue Gantt simplifiee type Project</p>
           </div>
         </div>
 
-        <div class="topbar-actions" aria-label="Actions principales">
-          <button class="button button-ghost" id="reset-demo" type="button">
-            Reinitialiser demo
-          </button>
+        <section class="toolbar" aria-label="Outils du planning">
+          <label class="field field-search">
+            <span>Rechercher</span>
+            <input
+              id="search"
+              type="search"
+              placeholder="Tache, lot, entreprise..."
+              autocomplete="off"
+            />
+          </label>
+
+          <label class="field">
+            <span>Phase</span>
+            <select id="phase-filter"></select>
+          </label>
+
+          <label class="field">
+            <span>Statut</span>
+            <select id="status-filter"></select>
+          </label>
+
+          <label class="field">
+            <span>Zoom</span>
+            <select id="density">
+              <option value="compact" selected>Compact</option>
+              <option value="standard">Standard</option>
+              <option value="large">Large</option>
+            </select>
+          </label>
+
+          <button class="button" id="reset-demo" type="button">Demo</button>
           <button class="button button-primary" id="open-task-form" type="button">
-            Ajouter une tache
+            + Tache
           </button>
-        </div>
+        </section>
       </header>
 
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Synthese</p>
-          <h2>Coordonnez les lots, les dates et les points critiques.</h2>
-          <p>
-            Une interface inspiree des plannings travaux classiques : tableau des
-            interventions a gauche, grille calendaire a droite, couleurs par
-            statut et details operationnels en un clic.
-          </p>
-        </div>
+      <section class="summary-line" id="status-summary" aria-live="polite"></section>
 
-        <div class="kpi-grid" id="kpi-grid" aria-label="Indicateurs du planning"></div>
-      </section>
-
-      <section class="controls" aria-label="Filtres du planning">
-        <label class="field field-search">
-          <span>Recherche</span>
-          <input
-            id="search"
-            type="search"
-            placeholder="Tache, entreprise, lot..."
-            autocomplete="off"
-          />
-        </label>
-
-        <label class="field">
-          <span>Phase</span>
-          <select id="phase-filter"></select>
-        </label>
-
-        <label class="field">
-          <span>Statut</span>
-          <select id="status-filter"></select>
-        </label>
-
-        <label class="field">
-          <span>Zoom</span>
-          <select id="density">
-            <option value="compact">Compact</option>
-            <option value="standard" selected>Standard</option>
-            <option value="large">Confort</option>
-          </select>
-        </label>
-      </section>
-
-      <main class="workspace">
-        <aside class="sidebar" aria-label="Liste des taches">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Lots et interventions</p>
-              <h2 id="task-count">0 tache</h2>
-            </div>
+      <main class="gantt-shell">
+        <aside class="task-pane" aria-label="Tableau des taches">
+          <div class="task-header">
+            <span>Lot</span>
+            <span>Tache</span>
+            <span>Entreprise</span>
+            <span>Debut</span>
+            <span>Fin</span>
+            <span>%</span>
           </div>
           <div class="task-table" id="task-table"></div>
         </aside>
 
-        <section class="planning-card" aria-label="Grille planning">
-          <div class="timeline-scroll">
+        <section class="gantt-pane" aria-label="Planning Gantt">
+          <div class="timeline-scroll" id="timeline-scroll">
             <div class="timeline" id="timeline"></div>
           </div>
         </section>
       </main>
 
-      <section class="details-panel" id="details-panel" aria-live="polite">
-        <div>
-          <p class="eyebrow">Selection</p>
-          <h2 id="details-title">Selectionnez une tache</h2>
-          <p id="details-meta">
-            Cliquez sur une ligne ou une barre du planning pour consulter les
-            informations operationnelles.
-          </p>
-        </div>
-        <div class="details-grid" id="details-grid"></div>
-      </section>
+      <footer class="selection-line" id="selected-summary" aria-live="polite">
+        Selectionnez une tache pour afficher ses details.
+      </footer>
     </div>
 
     <dialog class="task-dialog" id="task-dialog">

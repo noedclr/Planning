@@ -1,13 +1,14 @@
 # Planning chantier
 
-Application web de planning de chantier avec une vue type Gantt, inspiree des
-plannings travaux visuels : liste des lots et interventions a gauche, calendrier
-multi-semaines a droite, barres colorees par statut, filtres et fiche de detail.
+Application web de planning de chantier avec une interface simple type Gantt /
+MS Project : tableau des lots et interventions a gauche, calendrier
+multi-semaines a droite, barres colorees par statut et lecture dense adaptee aux
+reunions de chantier.
 
 ## Fonctionnalites
 
-- Tableau des interventions par phase : preparation, gros oeuvre, clos couvert,
-  second oeuvre et reception.
+- Tableau compact des interventions par phase : preparation, gros oeuvre, clos
+  couvert, second oeuvre et reception.
 - Grille calendaire dense avec en-tetes de semaines et de jours.
 - Barres de planning positionnees automatiquement selon les dates de debut et de
   fin.
@@ -15,9 +16,10 @@ multi-semaines a droite, barres colorees par statut, filtres et fiche de detail.
   attente.
 - Recherche globale par tache, lot, entreprise, responsable ou notes.
 - Filtres par phase, statut et niveau de zoom.
-- Indicateurs de synthese : nombre de taches, avancement moyen, taches critiques
-  et taches a risque.
+- Ligne de synthese compacte : nombre de taches, avancement moyen, taches
+  critiques et taches a risque.
 - Ajout de nouvelles interventions depuis un formulaire.
+- Selection d'une tache avec detail resume en bas de l'ecran.
 - Sauvegarde locale dans le navigateur via `localStorage`.
 - Reinitialisation rapide avec les donnees de demonstration.
 

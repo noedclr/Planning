@@ -16,17 +16,15 @@ const STORAGE_KEY = "planning-chantier-tasks";
 
 const els = {
   body: document.body,
-  kpiGrid: document.querySelector("#kpi-grid"),
   search: document.querySelector("#search"),
   phaseFilter: document.querySelector("#phase-filter"),
   statusFilter: document.querySelector("#status-filter"),
   density: document.querySelector("#density"),
+  statusSummary: document.querySelector("#status-summary"),
   taskTable: document.querySelector("#task-table"),
-  taskCount: document.querySelector("#task-count"),
   timeline: document.querySelector("#timeline"),
-  detailsTitle: document.querySelector("#details-title"),
-  detailsMeta: document.querySelector("#details-meta"),
-  detailsGrid: document.querySelector("#details-grid"),
+  timelineScroll: document.querySelector("#timeline-scroll"),
+  selectedSummary: document.querySelector("#selected-summary"),
   taskDialog: document.querySelector("#task-dialog"),
   openTaskForm: document.querySelector("#open-task-form"),
   taskForm: document.querySelector("#task-form"),
@@ -43,7 +41,7 @@ const filters = {
   search: "",
   phaseId: "all",
   status: "all",
-  density: "standard"
+  density: "compact"
 };
 
 init();
@@ -90,6 +88,28 @@ function populateSelects() {
 }
 
 function bindEvents() {
+  let syncingScroll = false;
+
+  els.timelineScroll.addEventListener("scroll", () => {
+    if (syncingScroll) {
+      return;
+    }
+
+    syncingScroll = true;
+    els.taskTable.scrollTop = els.timelineScroll.scrollTop;
+    syncingScroll = false;
+  });
+
+  els.taskTable.addEventListener("scroll", () => {
+    if (syncingScroll) {
+      return;
+    }
+
+    syncingScroll = true;
+    els.timelineScroll.scrollTop = els.taskTable.scrollTop;
+    syncingScroll = false;
+  });
+
   els.search.addEventListener("input", (event) => {
     filters.search = event.target.value;
     render();
@@ -174,36 +194,28 @@ function render() {
     selectedTaskId = visibleTasks[0]?.id ?? tasks[0]?.id ?? null;
   }
 
-  renderKpis(visibleTasks);
+  renderStatusSummary(visibleTasks);
   renderTaskTable(grouped);
   renderTimeline(grouped, days, bounds.start);
-  renderDetails();
+  renderSelectedSummary();
 }
 
-function renderKpis(visibleTasks) {
+function renderStatusSummary(visibleTasks) {
   const kpis = calculateKpis(visibleTasks);
-  const items = [
-    ["Taches", kpis.total],
-    ["Avancement moyen", `${kpis.averageProgress}%`],
-    ["Critiques", kpis.critical],
-    ["A risque", kpis.risk]
-  ];
 
-  els.kpiGrid.innerHTML = items
-    .map(
-      ([label, value]) => `
-        <article class="kpi-card">
-          <strong>${value}</strong>
-          <span>${label}</span>
-        </article>
-      `
-    )
-    .join("");
+  els.statusSummary.innerHTML = `
+    <strong>${kpis.total}</strong> taches
+    <span></span>
+    <strong>${kpis.averageProgress}%</strong> avancement moyen
+    <span></span>
+    <strong>${kpis.critical}</strong> critiques
+    <span></span>
+    <strong>${kpis.risk}</strong> a risque
+  `;
 }
 
 function renderTaskTable(grouped) {
   const count = grouped.reduce((sum, group) => sum + group.tasks.length, 0);
-  els.taskCount.textContent = `${count} ${count > 1 ? "taches" : "tache"}`;
 
   if (!count) {
     els.taskTable.innerHTML = `<p class="empty-state">Aucune tache ne correspond aux filtres.</p>`;
@@ -230,7 +242,6 @@ function renderTaskTable(grouped) {
 }
 
 function renderTaskRow(task) {
-  const status = statuses[task.status];
   const isSelected = task.id === selectedTaskId ? "is-selected" : "";
 
   return `
@@ -238,15 +249,19 @@ function renderTaskRow(task) {
       <span class="lot">${task.lot}</span>
       <span class="task-name">${task.name}</span>
       <span class="company">${task.company}</span>
-      <span class="dates">${formatShortDate(task.start)} - ${formatShortDate(task.end)}</span>
-      <span class="status-pill" style="--status-color: ${status.color}">${status.label}</span>
+      <span class="date">${formatShortDate(task.start)}</span>
+      <span class="date">${formatShortDate(task.end)}</span>
+      <span class="progress">${task.progress}</span>
     </button>
   `;
 }
 
 function renderTimeline(grouped, days, timelineStart) {
   const weekSegments = buildWeekSegments(days);
-  const totalRows = grouped.reduce((sum, group) => sum + group.tasks.length + 1, 0);
+  const totalRows = Math.max(
+    grouped.reduce((sum, group) => sum + group.tasks.length + 1, 0),
+    1
+  );
 
   els.timeline.style.setProperty("--day-count", days.length);
   els.timeline.style.setProperty("--row-count", totalRows);
@@ -268,7 +283,7 @@ function renderTimeline(grouped, days, timelineStart) {
         .map(
           (day) => `
             <div class="day-cell ${day.isWeekend ? "is-weekend" : ""}">
-              <span>${day.weekday}</span>
+              <span>${day.weekday.slice(0, 2)}</span>
               <strong>${day.dayNumber}</strong>
             </div>
           `
@@ -313,7 +328,6 @@ function renderTimelineRows(grouped, days, timelineStart) {
 
 function renderTimelineTaskRow(task, row, days, timelineStart) {
   const position = getTaskGridPosition(task, timelineStart);
-  const phase = getPhaseById(phases, task.phaseId);
   const status = statuses[task.status];
   const isSelected = task.id === selectedTaskId ? "is-selected" : "";
 
@@ -331,7 +345,6 @@ function renderTimelineTaskRow(task, row, days, timelineStart) {
         title="${task.name}"
         style="
           --bar-color: ${status.color};
-          --phase-color: ${phase.accent};
           grid-column: ${position.columnStart} / span ${position.columnSpan};
         "
       >
@@ -342,40 +355,27 @@ function renderTimelineTaskRow(task, row, days, timelineStart) {
   `;
 }
 
-function renderDetails() {
+function renderSelectedSummary() {
   const task = tasks.find((item) => item.id === selectedTaskId);
 
   if (!task) {
-    els.detailsTitle.textContent = "Selectionnez une tache";
-    els.detailsMeta.textContent = "Aucune tache disponible.";
-    els.detailsGrid.innerHTML = "";
+    els.selectedSummary.textContent = "Selectionnez une tache pour afficher ses details.";
     return;
   }
 
   const phase = getPhaseById(phases, task.phaseId);
   const status = statuses[task.status];
 
-  els.detailsTitle.textContent = task.name;
-  els.detailsMeta.textContent = `${task.lot} - ${task.company} - ${formatShortDate(
-    task.start
-  )} au ${formatShortDate(task.end)}`;
-
-  els.detailsGrid.innerHTML = [
-    ["Phase", phase.name],
-    ["Statut", status.label],
-    ["Responsable", task.owner],
-    ["Avancement", `${task.progress}%`],
-    ["Notes", task.notes]
-  ]
-    .map(
-      ([label, value]) => `
-        <article>
-          <span>${label}</span>
-          <strong>${value}</strong>
-        </article>
-      `
-    )
-    .join("");
+  els.selectedSummary.innerHTML = `
+    <strong>${task.lot}</strong>
+    ${task.name}
+    <span>${phase.name}</span>
+    <span>${task.company}</span>
+    <span>${formatShortDate(task.start)} - ${formatShortDate(task.end)}</span>
+    <span>${status.label}</span>
+    <span>${task.owner}</span>
+    <span>${task.notes}</span>
+  `;
 }
 
 function selectTask(taskId) {
